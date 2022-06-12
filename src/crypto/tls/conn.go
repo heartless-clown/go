@@ -567,6 +567,8 @@ type RecordHeaderError struct {
 	// It is nil if there's already been a handshake or a TLS alert has
 	// been written to the connection.
 	Conn net.Conn
+	// Raw provides the underlying rawInput bytes.Buffer.
+	Raw bytes.Buffer
 }
 
 func (e RecordHeaderError) Error() string { return "tls: " + e.Msg }
@@ -574,6 +576,7 @@ func (e RecordHeaderError) Error() string { return "tls: " + e.Msg }
 func (c *Conn) newRecordHeaderError(conn net.Conn, msg string) (err RecordHeaderError) {
 	err.Msg = msg
 	err.Conn = conn
+	err.Raw = c.rawInput
 	copy(err.RecordHeader[:], c.rawInput.Bytes())
 	return err
 }
