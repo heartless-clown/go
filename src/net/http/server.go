@@ -1846,6 +1846,10 @@ func (c *conn) serve(ctx context.Context) {
 			c.rwc.SetWriteDeadline(dl)
 		}
 		if err := tlsConn.HandshakeContext(ctx); err != nil {
+			if c.server.TLSErrorHandler != nil {
+				c.server.TLSErrorHandler(tlsConn, err)
+				return
+			}
 			// If the handshake failed due to the client not speaking
 			// TLS, assume they're speaking plaintext HTTP and write a
 			// 400 response on the TLS conn's underlying net.Conn.
@@ -2639,6 +2643,10 @@ type Server struct {
 	// underlying FileSystem errors.
 	// If nil, logging is done via the log package's standard logger.
 	ErrorLog *log.Logger
+
+	// TLSErrorHandler is an optional callback function
+	// which is called when tls.HandshakeContext fails.
+	TLSErrorHandler func(*tls.Conn, error)
 
 	// BaseContext optionally specifies a function that returns
 	// the base context for incoming requests on this server.
